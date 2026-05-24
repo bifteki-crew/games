@@ -4,10 +4,13 @@
 # correctly when served from https://bifteki-crew.github.io/games/<slug>/.
 set -euo pipefail
 
-: "${GH_TOKEN:?GH_TOKEN must be set (PAT with read access to bifteki-crew/*)}"
-
 HUB_DIST="$(pwd)/dist"
 mkdir -p "$HUB_DIST"
+
+if [ -z "${GH_TOKEN:-}" ]; then
+  echo "::warning::GAMES_READ_TOKEN secret not set — skipping game builds. Hub will deploy without playable games."
+  exit 0
+fi
 
 # Format: <slug> <repo> <build_output_dir> <runtime>
 # runtime: "next" | "vite"
