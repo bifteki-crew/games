@@ -1,0 +1,177 @@
+---
+import type { Game } from '../data/games.ts';
+
+interface Props {
+  game: Game;
+}
+
+const { game } = Astro.props;
+const playHref = `${import.meta.env.BASE_URL}/${game.slug}/`.replace(/\/+/g, '/');
+const isPlayable = game.status !== 'Prototype';
+---
+
+<article class="card" style={`--card-accent: ${game.accent}`}>
+  <div class="card-header">
+    <div class="badges">
+      <span class={`status status-${game.status.toLowerCase()}`}>{game.status}</span>
+      {game.tags.map((tag) => <span class="tag">{tag}</span>)}
+    </div>
+    <h2>{game.title}</h2>
+    <p class="tagline">{game.tagline}</p>
+  </div>
+
+  <p class="description">{game.description}</p>
+
+  <div class="meta">
+    <span class="tech">{game.tech}</span>
+  </div>
+
+  <div class="actions">
+    {
+      isPlayable ? (
+        <a class="btn btn-primary" href={playHref}>
+          ▶ Play
+        </a>
+      ) : (
+        <span class="btn btn-disabled" aria-disabled="true">
+          Coming Soon
+        </span>
+      )
+    }
+    <a class="btn btn-ghost" href={game.repo} target="_blank" rel="noopener">
+      Source ↗
+    </a>
+  </div>
+</article>
+
+<style>
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: var(--card-accent);
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: var(--card-accent);
+  }
+
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .status {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .status-released {
+    background: #14532d;
+    color: #86efac;
+  }
+  .status-wip {
+    background: #422006;
+    color: #fdba74;
+  }
+  .status-prototype {
+    background: #1e1b4b;
+    color: #c4b5fd;
+  }
+
+  .tag {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background: var(--bg-elevated);
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+  }
+
+  h2 {
+    margin: 0 0 0.35rem 0;
+    font-size: 1.4rem;
+    line-height: 1.2;
+  }
+
+  .tagline {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .description {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.9rem;
+    flex: 1;
+  }
+
+  .meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.15s ease;
+  }
+
+  .btn-primary {
+    background: var(--card-accent);
+    color: #0a0a0f;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+  }
+
+  .btn-ghost {
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover {
+    color: var(--text);
+    border-color: var(--text-muted);
+  }
+
+  .btn-disabled {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px dashed var(--border);
+    cursor: not-allowed;
+  }
+</style>

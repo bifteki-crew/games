@@ -1,0 +1,94 @@
+---
+import Layout from '../layouts/Layout.astro';
+import GameCard from '../components/GameCard.astro';
+import { games } from '../data/games.ts';
+---
+
+<Layout>
+  <main>
+    <header class="hero">
+      <p class="kicker">Bifteki Crew</p>
+      <h1>
+        Games.
+        <span class="hero-accent">Made in our kitchen.</span>
+      </h1>
+      <p class="lead">
+        A small studio shipping browser games. Click any card to play in your browser — no install,
+        no download.
+      </p>
+    </header>
+
+    <section class="grid" aria-label="Games">
+      {games.map((game) => <GameCard game={game} />)}
+    </section>
+
+    <footer class="footer">
+      <p>
+        Built by the <a href="https://github.com/bifteki-crew">Bifteki Crew</a>. Source for this hub
+        on <a href="https://github.com/bifteki-crew/games">GitHub</a>.
+      </p>
+    </footer>
+  </main>
+</Layout>
+
+<style>
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+  }
+
+  .hero {
+    margin-bottom: 3rem;
+  }
+
+  .kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin: 0 0 0.6rem 0;
+    font-weight: 700;
+  }
+
+  h1 {
+    margin: 0 0 1rem 0;
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    line-height: 1.05;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-accent {
+    display: block;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .lead {
+    margin: 0;
+    max-width: 50ch;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .footer {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .footer a {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--text-muted);
+  }
+</style>
