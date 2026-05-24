@@ -1,0 +1,43 @@
+From 5aa00735dad3da14892b1983d1bf582b9ae18e24 Mon Sep 17 00:00:00 2001
+From: Ilker Dogan <ilker.dogan@idepe.de>
+Date: Sun, 24 May 2026 22:57:48 +0200
+Subject: [PATCH] next.config: add static-export branch for hub builds
+
+When HUB_BUILD=1, switch to output: 'export' with basePath/assetPrefix from
+NEXT_PUBLIC_BASE_PATH for deployment to bifteki-crew.github.io/games/weazel-trampoline/.
+Without the env, behavior is unchanged.
+---
+ src/weazel-web/next.config.ts | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/src/weazel-web/next.config.ts b/src/weazel-web/next.config.ts
+index e9ffa30..96da965 100644
+--- a/src/weazel-web/next.config.ts
++++ b/src/weazel-web/next.config.ts
+@@ -1,7 +1,20 @@
+ import type { NextConfig } from "next";
+ 
+-const nextConfig: NextConfig = {
+-  /* config options here */
+-};
++// HUB_BUILD=1 switches to static export for deployment to the central games
++// hub at bifteki-crew.github.io/games/weazel-trampoline/.
++const isHubBuild = process.env.HUB_BUILD === '1';
++const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
++
++const nextConfig: NextConfig = isHubBuild
++  ? {
++      output: 'export',
++      basePath,
++      assetPrefix: basePath || undefined,
++      images: { unoptimized: true },
++      trailingSlash: true,
++    }
++  : {
++      /* config options here */
++    };
+ 
+ export default nextConfig;
+-- 
+2.47.3
+

@@ -12,13 +12,13 @@ if [ -z "${GH_TOKEN:-}" ]; then
   exit 0
 fi
 
-# Format: <slug> <repo> <build_output_dir> <runtime>
-# runtime: "next" | "vite"
+# Format: <slug>|<repo>|<workdir>|<output_dir>|<runtime>
+# workdir/output_dir are relative to the repo root after clone.
 GAMES=(
-  "programmer-panic    bifteki-crew/programmer-panic     dist  vite"
-  "werewolf-hunter     bifteki-crew/werewolf-hunter-web-v1  out   next"
-  "weazel-trampoline   bifteki-crew/weazel-trampoline    out   next"
-  "currywurst-kingpin  bifteki-crew/currywurst-kingpin   out   next"
+  "programmer-panic|bifteki-crew/programmer-panic|programmer-panic|dist|vite"
+  "werewolf-hunter|bifteki-crew/werewolf-hunter-web-v1|src/werewolfhunter-web|out|next"
+  "weazel-trampoline|bifteki-crew/weazel-trampoline|src/weazel-web|out|next"
+  "currywurst-kingpin|bifteki-crew/currywurst-kingpin|.|out|next"
 )
 
 FAILED=()
@@ -26,20 +26,21 @@ FAILED=()
 build_one() {
   local slug=$1
   local repo=$2
-  local out=$3
-  local runtime=$4
+  local workdir=$3
+  local out=$4
+  local runtime=$5
   local base_path="/games/${slug}"
-  local workdir
-  workdir="$(mktemp -d)"
+  local clonedir
+  clonedir="$(mktemp -d)"
 
   echo "::group::Build ${slug} (${repo})"
-  git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${repo}.git" "$workdir"
-  pushd "$workdir" >/dev/null
+  git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${repo}.git" "$clonedir"
+  pushd "${clonedir}/${workdir}" >/dev/null
 
   npm ci --no-audit --no-fund
 
   if [ "$runtime" = "next" ]; then
-    NEXT_PUBLIC_BASE_PATH="$base_path" npm run build
+    HUB_BUILD=1 NEXT_PUBLIC_BASE_PATH="$base_path" npm run build
   else
     VITE_BASE_PATH="${base_path}/" npm run build
   fi
@@ -47,7 +48,7 @@ build_one() {
   if [ ! -d "$out" ]; then
     echo "::error::expected build output dir '$out' not found in $repo"
     popd >/dev/null
-    rm -rf "$workdir"
+    rm -rf "$clonedir"
     return 1
   fi
 
@@ -55,15 +56,13 @@ build_one() {
   cp -r "${out}/." "${HUB_DIST}/${slug}/"
 
   popd >/dev/null
-  rm -rf "$workdir"
+  rm -rf "$clonedir"
   echo "::endgroup::"
 }
 
 for line in "${GAMES[@]}"; do
-  # shellcheck disable=SC2086
-  set -- $line
-  slug=$1; repo=$2; out=$3; runtime=$4
-  if ! build_one "$slug" "$repo" "$out" "$runtime"; then
+  IFS='|' read -r slug repo workdir out runtime <<<"$line"
+  if ! build_one "$slug" "$repo" "$workdir" "$out" "$runtime"; then
     echo "::warning::failed to build $slug — hub will deploy without it"
     FAILED+=("$slug")
   fi
@@ -74,4 +73,4 @@ if [ ${#FAILED[@]} -gt 0 ]; then
 fi
 
 echo "Built games:"
-ls -1 "$HUB_DIST"
+ls -1 "$HUB_DIST" | grep -v '^_assets$\|^index.html$\|^favicon.svg$' || true

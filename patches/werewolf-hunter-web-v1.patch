@@ -1,0 +1,60 @@
+From f836c43847cd62b90a88a658918af577ccb05c76 Mon Sep 17 00:00:00 2001
+From: Ilker Dogan <ilker.dogan@idepe.de>
+Date: Sun, 24 May 2026 22:56:20 +0200
+Subject: [PATCH] next.config: add static-export branch for hub builds
+
+When HUB_BUILD=1, switch output to 'export' with basePath/assetPrefix from
+NEXT_PUBLIC_BASE_PATH, for deployment to the central games hub at
+bifteki-crew.github.io/games/werewolf-hunter/. Without the env, the
+existing standalone Docker build is preserved.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+---
+ src/werewolfhunter-web/next.config.ts | 32 +++++++++++++++++++--------
+ 1 file changed, 23 insertions(+), 9 deletions(-)
+
+diff --git a/src/werewolfhunter-web/next.config.ts b/src/werewolfhunter-web/next.config.ts
+index 109ae45..bb2bc22 100644
+--- a/src/werewolfhunter-web/next.config.ts
++++ b/src/werewolfhunter-web/next.config.ts
+@@ -1,14 +1,28 @@
+ import type { NextConfig } from 'next';
+ 
+-const nextConfig: NextConfig = {
+-  output: 'standalone',
+-  turbopack: {},
+-  webpack: (config, { isServer }) => {
+-    if (isServer) {
+-      config.externals = [...(config.externals ?? []), 'phaser'];
++// HUB_BUILD=1 switches to static export for deployment to the central games
++// hub at bifteki-crew.github.io/games/werewolf-hunter/. Without it, the regular
++// standalone build (used by Docker) is preserved.
++const isHubBuild = process.env.HUB_BUILD === '1';
++const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
++
++const nextConfig: NextConfig = isHubBuild
++  ? {
++      output: 'export',
++      basePath,
++      assetPrefix: basePath || undefined,
++      images: { unoptimized: true },
++      trailingSlash: true,
+     }
+-    return config;
+-  },
+-};
++  : {
++      output: 'standalone',
++      turbopack: {},
++      webpack: (config, { isServer }) => {
++        if (isServer) {
++          config.externals = [...(config.externals ?? []), 'phaser'];
++        }
++        return config;
++      },
++    };
+ 
+ export default nextConfig;
+-- 
+2.47.3
+

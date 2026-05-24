@@ -1,0 +1,43 @@
+From 94e4ddf0f4ce320fbd0571793b4ef04cfd87f1f5 Mon Sep 17 00:00:00 2001
+From: Ilker Dogan <ilker.dogan@idepe.de>
+Date: Sun, 24 May 2026 22:57:49 +0200
+Subject: [PATCH] next.config: add static-export branch for hub builds
+
+When HUB_BUILD=1, switch to output: 'export' with basePath/assetPrefix from
+NEXT_PUBLIC_BASE_PATH for deployment to bifteki-crew.github.io/games/currywurst-kingpin/.
+Without the env, behavior is unchanged.
+---
+ next.config.ts | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/next.config.ts b/next.config.ts
+index e9ffa30..5ea2e44 100644
+--- a/next.config.ts
++++ b/next.config.ts
+@@ -1,7 +1,20 @@
+ import type { NextConfig } from "next";
+ 
+-const nextConfig: NextConfig = {
+-  /* config options here */
+-};
++// HUB_BUILD=1 switches to static export for deployment to the central games
++// hub at bifteki-crew.github.io/games/currywurst-kingpin/.
++const isHubBuild = process.env.HUB_BUILD === '1';
++const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
++
++const nextConfig: NextConfig = isHubBuild
++  ? {
++      output: 'export',
++      basePath,
++      assetPrefix: basePath || undefined,
++      images: { unoptimized: true },
++      trailingSlash: true,
++    }
++  : {
++      /* config options here */
++    };
+ 
+ export default nextConfig;
+-- 
+2.47.3
+
